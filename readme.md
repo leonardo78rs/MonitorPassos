@@ -16,37 +16,11 @@ Para essa tarefa, usaremos os dados de um dispositivo de monitoramento de ativid
 
 Neste primeiro bloco, vamos carregar os dados e processá-los conforme necessário. O uso do código para este exercício é:
 
-
-
 ```r
 library(data.table)
-```
-
-```
-## Warning: package 'data.table' was built under R version 3.2.5
-```
-
-```
-## data.table 1.10.4
-```
-
-```
-##   The fastest way to learn (by data.table authors): https://www.datacamp.com/courses/data-analysis-the-data-table-way
-```
-
-```
-##   Documentation: ?data.table, example(data.table) and browseVignettes("data.table")
-```
-
-```
-##   Release notes, videos and slides: http://r-datatable.com
-```
-
-```r
 Originais <- fread("activity.csv")
 Originais$date <- as.Date(Originais$date, "%Y-%m-%d")
 ```
-
 
 O código é lido com a função "fread" do pacote data.table. O único processamento aplicado ao conjunto de dados é a transformação da variável de dados de Caractere para Data.
 
@@ -225,40 +199,12 @@ Agora vamos criar uma nova variável que indique se um determinado dia é WEEKEN
 
 ```r
 library(chron)
-```
-
-```
-## Warning: package 'chron' was built under R version 3.2.5
-```
-
-```r
 library(plyr)
-```
 
-```
-## Warning: package 'plyr' was built under R version 3.2.5
-```
-
-```r
 Originais$day <- revalue(as.factor(is.weekend(Originais$date)), 
                         c("FALSE" = "WEEKDAY", "TRUE"="WEEKEND"))
 
 library(reshape2) 
-```
-
-```
-## Warning: package 'reshape2' was built under R version 3.2.5
-```
-
-```
-## 
-## Attaching package: 'reshape2'
-```
-
-```
-## The following objects are masked from 'package:data.table':
-## 
-##     dcast, melt
 ```
 
 ```r
