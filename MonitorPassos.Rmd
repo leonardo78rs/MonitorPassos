@@ -1,32 +1,50 @@
-# Pesquisa Reproduzível: Analisando um monitor de passos de uma pessoa. 
+# Analisando um monitor de passos de uma pessoa
+## Um exemplo de pesquisa reproduzível
 
 ### A importância
 
 A pesquisa que permite ser reproduzida traz algumas vantagens:
 
 1. O aprendizado. Quando nos deparamos com uma pesquisa reproduzível, podemos apredender e aplicar a mesma técnica para outras situações;
-2. A refutabilidade. Um dos pontos que separam a ciência de outras crenças é que ela pode ser refutável. Podemos discordar da amostra obtida, do método de coleta de dados, das transformações dos dados, ou ainda das conclusões; 
-2. A sua evolução. Outras pessoas podem testar e aplicar a mesma pesquisa a outros cenários, à outras amostras e assim descobrir falhas ou lacunas que levarão à evolução desta pesquisa.
 
+2. A refutabilidade. Um dos pontos que separam a ciência de outras crenças é que ela pode ser refutável. Podemos discordar da amostra obtida, do método de coleta de dados, das transformações dos dados, ou ainda das conclusões; 
+
+2. A sua evolução. Outras pessoas podem testar e aplicar a mesma pesquisa a outros cenários, à outras amostras e assim descobrir falhas ou lacunas que levarão à evolução desta pesquisa.
 
 ### Amostra 
 
 Para essa tarefa, usaremos os dados de um dispositivo de monitoramento de atividades pessoais. Este dispositivo coleta dados a cada 5 minutos ao longo do dia. Os dados consistem em dois meses de dados de um indivíduo anônimo coletado ao longo de alguns meses e o número de passos dados em intervalos de 5 minutos por dia.
 
+### Bibliotecas utilizadas 
+```{r warning=FALSE}
+library(data.table)
+library(chron)
+library(plyr)
+library(reshape2) 
+library(lattice)
+```
+
+### Funções utilizadas
+```{r}
+# fread(), summary(), head(), length(), lapply(), 
+# as.Date(), is.na(), mean(), median()
+# par(), plot(), lines(), xyplot()
+# which.max(), with(), ave(), revalue(), suppressWarnings() ,dcast().
+```
+
 ### Carregando e pré-processando os dados
 
 Neste primeiro bloco, vamos carregar os dados e processá-los conforme necessário. O uso do código para este exercício é:
 
-
 ```{r read.data}
-library(data.table)
 Originais <- fread("activity.csv")
 Originais$date <- as.Date(Originais$date, "%Y-%m-%d")
 ```
 
 
-O código é lido com a função "fread" do pacote data.table. O único processamento aplicado ao conjunto de dados é a transformação da variável de dados de Caractere para Data.
+O código é lido com a função "fread" do pacote data.table. 
 
+O único processamento aplicado ao conjunto de dados é a transformação da variável de dados de Caractere para Data.
 
 Das funções básicas do R, podemos destacar summary e head. A primeira traz informações que já podem indicar algum procedimento que será necessário fazer. A função head traz os primeiros registros, que podem ajudar a visualizar a nossa amostra. 
 
@@ -34,8 +52,8 @@ Das funções básicas do R, podemos destacar summary e head. A primeira traz in
 summary(Originais)
 head(Originais)
 length(Originais$steps)
-
 ```
+
 Algumas observações: 
 
 - Através destas funções vemos que temos o número de passos (steps) com mínimo e mediana zerados, ou seja, há muitos momentos em que a pessoa não caminha ou ainda possa ter alguma imperfeição na coleta dos dados;
@@ -53,7 +71,6 @@ Neste exercício, geraremos um histograma do número total de etapas realizadas 
 
 Neste bloco, os valores de NA podem ser ignorados.
 
-
 ```{r Fig1, fig.width=7, fig.height=6}
 Passos <- Originais[, lapply(.SD, sum), by = date, .SDcols = "steps"]
 
@@ -61,12 +78,13 @@ par(lend = "square")
 
 plot(Passos$date, Passos$steps, 
      type = "h", lwd = 10, col = "black", 
-     xlab = "date", ylab = "number of steps",
-     main = "number of steps per day")
+     xlab = "date", ylab = "número de passos",
+     main = "Número de passos por dia")
 
-lines(Passos$date, Passos$steps, type = "h", lwd = 7, col = "magenta")
+lines(Passos$date, Passos$steps, type = "h", lwd = 7, col = "green")
 
-mean(Passos$steps, na.rm = T);median(Passos$steps, na.rm = T)
+mean(Passos$steps, na.rm = T);
+median(Passos$steps, na.rm = T)
 ```
 
 ## Qual é o padrão de atividade média diária?
@@ -77,8 +95,8 @@ Faremos uma série de tempos do intervalo de 5 minutos (eixo x) e o número méd
 Passos2 <- Originais[!is.na(Originais$steps)][,lapply(.SD, mean), by = interval, .SDcols = "steps"]
 
 plot(Passos2$interval, Passos2$steps, type = "l", 
-     xlab = "interval", ylab = "steps", 
-     main = "steps by interval")
+     xlab = "intervalo de tempo", ylab = "passos", 
+     main = "passos por intervalo de tempo")
 
 Passos2[which.max(Passos2$steps)]
 ```
@@ -91,19 +109,20 @@ Vamos calcular o número total de valores omissos no conjunto de dados. Vamos el
 ```{r Fig3}
 length(Originais$steps[is.na(Originais$steps)])
 
+#valores perdidos serão substituidos pela mediana
+Originais$steps[ is.na(Originais$steps) ] <- 
+with(Originais, ave(steps, interval,
+FUN = function(x) median(x, na.rm = T)))[is.na(Originais$steps)] 
 
-Originais$steps[is.na(Originais$steps)] <- with(Originais, ave(steps, interval, 
-                                      FUN = function(x) median(x, na.rm = T)))[is.na(Originais$steps)] 
-                                      #median substitute missing values 
-#Replot "Steps Per Day"
+#Replot "Passos por dia"
 Passos3 <- Originais[, lapply(.SD, sum), by = date, .SDcols = "steps"]
 
 par(lend = "square")
 
 plot(Passos3$date, Passos3$steps, 
      type = "h", lwd = 8, col = "black", 
-     xlab = "date", ylab = "number of steps",
-     main = "number of steps per day")
+     xlab = "data", ylab = "número de passos",
+     main = "Número de passos por dia")
 
 lines(Passos3$date, Passos3$steps, type = "h", lwd = 7, col = "blue")
 
@@ -125,20 +144,14 @@ Os resultados são apresentados mostrando o número médio de passos em cada int
 Agora vamos criar uma nova variável que indique se um determinado dia é WEEKEND ou WEEKDAY. (Usando Fator) Em seguida, medimos o número de etapas por intervalo em todas as semanas e fins de semana.
 
 ```{r Fig4}
-library(chron)
-library(plyr)
 Originais$day <- revalue(as.factor(is.weekend(Originais$date)), 
-                        c("FALSE" = "WEEKDAY", "TRUE"="WEEKEND"))
+                        c("FALSE" = "Dia de semana", "TRUE"="Fim de semana"))
 
-library(reshape2) 
 PassosMerge <- suppressWarnings(melt(Originais, c("interval", "day"))) 
 PassosSoma  <- dcast(PassosMerge, day + interval ~ variable, mean)[,1:3] 
 
-library(lattice)
 xyplot(steps ~ interval | day, data = PassosSoma, layout = c(1,2), type = "l")
-
 ```
-
 
 Embora pareçam ser muito semelhantes, mais atividade é notada em torno dos intervalos do meio-dia no fim de semana em comparação com o dia da semana. A atividade durante a semana começa um pouco antes do fim de semana, com um alto nível de atividade por volta das 9 horas da manhã, provavelmente devido às horas trabalhadas.
 
@@ -146,7 +159,3 @@ Vale lembrar que esta análise foi realizada com um único indivíduo e um únic
 
 Uma melhor análise que apontaria para uma conclusão poderia ser obtida usando as mesmas técnicas, como descrevi aqui, mas sob um grupo de pessoas e com maiores faixas de valores.
 
-- Saturday, December 2, 2017
-- Porto Alegre/RS, Brasil
-- Leonardo Mendes de Oliveira
-- Coursera 
